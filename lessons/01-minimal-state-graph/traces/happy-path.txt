@@ -1,0 +1,3 @@
+node=normalize update={'question': 'What makes an agent durable?'}
+node=plan update={'plan': ['define', 'collect', 'review']}
+final={'question': 'What makes an agent durable?', 'plan': ['define', 'collect', 'review']}
