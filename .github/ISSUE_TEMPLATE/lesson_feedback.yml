@@ -1,0 +1,22 @@
+name: Lesson feedback
+description: Report a confusing explanation, broken exercise, or source-map mismatch.
+title: "[Lesson]: "
+labels: [documentation]
+body:
+  - type: input
+    id: lesson
+    attributes:
+      label: Lesson
+      placeholder: lessons/01-minimal-state-graph
+    validations:
+      required: true
+  - type: textarea
+    id: confusion
+    attributes:
+      label: What was unclear or incorrect?
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Reproduction or upstream evidence
