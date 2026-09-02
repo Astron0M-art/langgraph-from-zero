@@ -14,9 +14,10 @@ recoverable Deep Research Agent with auditable evidence.
 
 ## Status
 
-Current release: [`v0.1.0`, Minimal State Graph](lessons/01-minimal-state-graph/README.md).
-It implements nodes, static edges, compile-time validation, copy-on-write state transitions,
-and a step budget without depending on LangChain, LangGraph, or a live model.
+Current release: [`v0.2.0`, Conditional Routing and Loops](lessons/02-conditional-routing/README.md).
+It routes on merged node updates, maps stable labels to destinations, records each chosen next
+node, terminates explicitly at `END`, and fails safely on unknown routes or exhausted step budgets.
+It does not depend on LangChain, LangGraph, or a live model.
 
 ## Quick start
 
@@ -29,6 +30,9 @@ python -m pip install -e '.[dev]'
 python -m langgraph_from_zero
 pytest
 ```
+
+The demo deterministically normalizes a question, collects two offline evidence items, and routes
+to review while exposing every selected destination.
 
 ## Course promise
 

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "langgraph-from-zero"
-version = "0.1.0"
+version = "0.2.0"
 description = "A Chinese-first course that rebuilds a durable agent graph runtime from zero"
 readme = "README.md"
 requires-python = ">=3.11"
