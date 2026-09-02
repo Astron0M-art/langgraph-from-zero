@@ -1,0 +1,4 @@
+node=collect update={'evidence_collected': 1} next=collect
+node=collect update={'evidence_collected': 2} next=review
+node=review update={'verdict': 'reviewed 2 items'} next=__end__
+final={'evidence_needed': 2, 'evidence_collected': 2, 'verdict': 'reviewed 2 items'}

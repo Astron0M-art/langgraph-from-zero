@@ -13,8 +13,9 @@ Superstep、Checkpoint、Interrupt、幂等重试、子图、Memory、轨迹评�
 
 ## 项目状态
 
-当前版本：[`v0.1.0` 最小状态图](lessons/01-minimal-state-graph/README.md)。它提供节点、普通边、
-编译校验、不可变输入、确定性状态更新和最大步数保护；不依赖 LangChain、LangGraph 或真实模型。
+当前版本：[`v0.2.0` 条件路由与循环](lessons/02-conditional-routing/README.md)。它让路由读取
+节点更新后的状态，支持标签到节点的显式映射、可观察下一跳、显式 `END`、未知路由失败和循环步数保护；
+不依赖 LangChain、LangGraph 或真实模型。
 
 ## 5 分钟运行
 
@@ -28,7 +29,7 @@ python -m langgraph_from_zero
 pytest
 ```
 
-预期看到两个可解释步骤：先规范化研究问题，再生成一个确定性的研究计划。
+预期看到四个可解释步骤：规范化问题，收集两份离线证据，再进入审查。每步都显示实际选择的下一跳。
 
 ## 学习路径
 
