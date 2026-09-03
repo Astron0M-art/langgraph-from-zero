@@ -5,6 +5,21 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-04
+
+### Added
+
+- TypedDict-style state schemas with required-key, allowed-key, and runtime value validation.
+- `Annotated` binary reducers for sequential accumulation and ordered update batches.
+- Explicit conflict errors when one batch writes multiple values to a field without a reducer.
+- Independent third lesson with pinned LangGraph channel mappings, fault experiments, offline
+  tests, exercises, and a fixture-verified deterministic trace.
+
+### Changed
+
+- The research demo now preserves individual evidence updates through a reducer instead of
+  replacing the evidence collection.
+
 ## [0.2.0] - 2026-09-02
 
 ### Added
@@ -27,6 +42,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Independent first lesson with architecture, upstream source map, lab, exercise, tests, and trace.
 - Chinese and English project entry points, governance documents, CI, and production-growth gates.
 
-[Unreleased]: https://github.com/Astron0M-art/langgraph-from-zero/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Astron0M-art/langgraph-from-zero/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Astron0M-art/langgraph-from-zero/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Astron0M-art/langgraph-from-zero/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Astron0M-art/langgraph-from-zero/releases/tag/v0.1.0

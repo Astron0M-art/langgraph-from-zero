@@ -13,9 +13,9 @@ Superstep、Checkpoint、Interrupt、幂等重试、子图、Memory、轨迹评�
 
 ## 项目状态
 
-当前版本：[`v0.2.0` 条件路由与循环](lessons/02-conditional-routing/README.md)。它让路由读取
-节点更新后的状态，支持标签到节点的显式映射、可观察下一跳、显式 `END`、未知路由失败和循环步数保护；
-不依赖 LangChain、LangGraph 或真实模型。
+当前版本：[`v0.3.0` 类型化 State 与 Reducer](lessons/03-typed-state-reducers/README.md)。它用
+`TypedDict` 定义字段契约，用 `Annotated` Reducer 累积更新，并让未知字段、错误类型和无 Reducer
+的批内多写显式失败；不依赖 LangChain、LangGraph 或真实模型。
 
 ## 5 分钟运行
 
@@ -29,7 +29,8 @@ python -m langgraph_from_zero
 pytest
 ```
 
-预期看到四个可解释步骤：规范化问题，收集两份离线证据，再进入审查。每步都显示实际选择的下一跳。
+预期看到四个可解释步骤：规范化问题，两次收集离线证据，再进入审查。每步同时显示原始局部更新、
+Reducer 合并后的状态和实际下一跳。
 
 ## 学习路径
 
