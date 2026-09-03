@@ -40,6 +40,7 @@ jobs:
       - run: pytest
       - run: python -m unittest discover -s lessons/01-minimal-state-graph/tests -v
       - run: python -m unittest discover -s lessons/02-conditional-routing/tests -v
+      - run: python -m unittest discover -s lessons/03-typed-state-reducers/tests -v
 
   package:
     runs-on: ubuntu-latest
