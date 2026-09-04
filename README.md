@@ -2,20 +2,27 @@
 
 [简体中文](README.md) | [English](README_EN.md)
 
-一个中文优先、源码对照、可运行、可验证的持久化 Agent 图运行时课程。
-
-项目从约 100 行确定性状态图执行器出发，逐步加入路由、Reducer、Pregel
-Superstep、Checkpoint、Interrupt、幂等重试、子图、Memory、轨迹评测，最终完成一个
-有证据链、可恢复的 Deep Research Agent。
+面向具备 Python 基础、希望通过小型可运行实现理解图运行时语义的中文优先课程。项目从约
+100 行确定性状态图出发，逐步研究可恢复 Agent 工作流。
 
 > 本项目以 [LangGraph](https://github.com/langchain-ai/langgraph) 源码为研究锚点，但不是
 > LangChain 官方项目，也不是 LangGraph 的 Python 移植版或 API 兼容实现。
 
-## 项目状态
+## 当前能做什么
 
 当前版本：[`v0.3.0` 类型化 State 与 Reducer](lessons/03-typed-state-reducers/README.md)。它用
-`TypedDict` 定义字段契约，用 `Annotated` Reducer 累积更新，并让未知字段、错误类型和无 Reducer
-的批内多写显式失败；不依赖 LangChain、LangGraph 或真实模型。
+`TypedDict` 定义字段契约，用 `Annotated` Reducer 累积更新，并让显式初始状态或节点更新中的未知
+字段、错误类型和无 Reducer 的批内多写失败；不依赖 LangChain、LangGraph 或真实模型。
+
+当前运行器按顺序执行节点，支持静态边、条件路由和有序 update batch 的合并实验。运行演示会看到
+四个确定性步骤：规范化问题、两次收集离线证据、进入审查；每步显示局部更新、合并后状态和下一跳。
+
+## 尚未做到什么
+
+当前没有 Channel、Pregel superstep、并行调度、Checkpoint、持久化、崩溃恢复或 Interrupt，也没有
+内建的模型、网络与外部副作用 adapter。`merge_updates()` 只是验证 Reducer 与普通字段冲突语义的教学
+接口，不代表已有并发执行。用户提供的 Python 节点、路由和 Reducer 仍是可信回调；运行器只浅拷贝
+state，不会阻止它们修改嵌套对象或自行执行副作用。以上路线能力不是 `v0.3.0` 的现状。
 
 ## 5 分钟运行
 
@@ -29,10 +36,7 @@ python -m langgraph_from_zero
 pytest
 ```
 
-预期看到四个可解释步骤：规范化问题，两次收集离线证据，再进入审查。每步同时显示原始局部更新、
-Reducer 合并后的状态和实际下一跳。
-
-## 学习路径
+## 后续学习路径
 
 ```text
 约 100 行状态图
@@ -60,7 +64,7 @@ Reducer 合并后的状态和实际下一跳。
 本项目不会再次把 read/write/edit、Shell、TUI、MCP 或 Skills 当作课程主线。
 
 - `pi-agent-from-zero` 研究单体 Coding Agent 如何感知和作用于本地环境。
-- `langgraph-from-zero` 研究长运行 Agent 如何组织状态、并发、恢复、人工介入和验证。
+- `langgraph-from-zero` 的路线图研究长运行 Agent 如何组织状态、并发、恢复、人工介入和验证。
 - 工具调用只在后期作为图运行时的一个适配边界出现。
 
 ## 教学原则
