@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "langgraph-from-zero"
 version = "0.3.0"
-description = "A Chinese-first course that rebuilds a durable agent graph runtime from zero"
+description = "A Chinese-first course on deterministic state graphs, conditional routing, and reducer-backed state"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
