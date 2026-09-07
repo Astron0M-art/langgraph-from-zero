@@ -57,7 +57,6 @@ class StateSpec:
                             for parameter in signature(candidate).parameters.values()
                             if parameter.kind
                             in {Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD}
-                            and parameter.default is Parameter.empty
                         ]
                     except (TypeError, ValueError) as error:
                         raise GraphError(f"cannot inspect reducer for state key {key!r}") from error

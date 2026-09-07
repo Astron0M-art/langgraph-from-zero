@@ -16,6 +16,10 @@ def bad_reducer(only_one: object) -> object:
     return only_one
 
 
+def defaulted_reducer(current: list[str], update: list[str] | None = None) -> list[str]:
+    return [*current, *(update or [])]
+
+
 class ResearchState(TypedDict):
     count: int
     evidence: Annotated[list[str], append_items]
@@ -134,6 +138,17 @@ def test_invalid_reducer_signature_is_rejected() -> None:
 
     with pytest.raises(GraphError, match=r"expected \(current, update\)"):
         StateGraph(BadState)
+
+
+def test_two_parameter_reducer_with_default_is_accepted() -> None:
+    class DefaultedReducerState(TypedDict):
+        values: Annotated[list[str], defaulted_reducer]
+
+    graph = StateGraph(DefaultedReducerState)
+    graph.add_node("append", lambda _state: {"values": ["new"]})
+    graph.add_edge(START, "append").add_edge("append", END)
+
+    assert graph.compile().invoke({"values": ["old"]}) == {"values": ["old", "new"]}
 
 
 def test_direct_route_can_return_node_name_without_path_map() -> None:

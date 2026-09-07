@@ -25,6 +25,10 @@ def exploding_reducer(current: list[str], update: list[str]) -> list[str]:
     raise RuntimeError("boom")
 
 
+def defaulted_reducer(current: list[str], update: list[str] | None = None) -> list[str]:
+    return [*current, *(update or [])]
+
+
 class CompatibilityState(TypedDict):
     count: int
     items: Annotated[list[str], append_items]
@@ -37,6 +41,10 @@ class InvalidReducerState(TypedDict):
 
 class ExplodingReducerState(TypedDict):
     items: Annotated[list[str], exploding_reducer]
+
+
+class DefaultedReducerState(TypedDict):
+    items: Annotated[list[str], defaulted_reducer]
 
 
 class TypedStateTests(unittest.TestCase):
@@ -134,6 +142,13 @@ class TypedStateTests(unittest.TestCase):
     def test_invalid_reducer_signature_is_rejected(self) -> None:
         with self.assertRaisesRegex(GRAPH.GraphError, r"expected \(current, update\)"):
             GRAPH.StateGraph(InvalidReducerState)
+
+    def test_two_parameter_reducer_with_default_matches_current_runtime(self) -> None:
+        spec = GRAPH.StateSpec(DefaultedReducerState)
+
+        merged = spec.merge({"items": []}, [{"items": ["a"]}, {"items": ["b"]}])
+
+        self.assertEqual(merged, {"items": ["a", "b"]})
 
     def test_reducer_failure_is_wrapped_with_cause(self) -> None:
         spec = GRAPH.StateSpec(ExplodingReducerState)
