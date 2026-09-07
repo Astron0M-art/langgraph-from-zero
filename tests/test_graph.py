@@ -20,6 +20,10 @@ def defaulted_reducer(current: list[str], update: list[str] | None = None) -> li
     return [*current, *(update or [])]
 
 
+def exploding_reducer(current: list[str], update: list[str]) -> list[str]:
+    raise RuntimeError("boom")
+
+
 class ResearchState(TypedDict):
     count: int
     evidence: Annotated[list[str], append_items]
@@ -149,6 +153,20 @@ def test_two_parameter_reducer_with_default_is_accepted() -> None:
     graph.add_edge(START, "append").add_edge("append", END)
 
     assert graph.compile().invoke({"values": ["old"]}) == {"values": ["old", "new"]}
+
+
+def test_reducer_failure_preserves_original_cause() -> None:
+    class ExplodingReducerState(TypedDict):
+        values: Annotated[list[str], exploding_reducer]
+
+    graph = StateGraph(ExplodingReducerState)
+    graph.add_node("append", lambda _state: {"values": ["new"]})
+    graph.add_edge(START, "append").add_edge("append", END)
+
+    with pytest.raises(GraphError, match="reducer failed") as captured:
+        graph.compile().invoke({"values": []})
+
+    assert isinstance(captured.value.__cause__, RuntimeError)
 
 
 def test_direct_route_can_return_node_name_without_path_map() -> None:
