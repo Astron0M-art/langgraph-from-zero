@@ -40,8 +40,8 @@ dev = [
 where = ["src"]
 
 [tool.pytest.ini_options]
-addopts = "-q"
-testpaths = ["tests"]
+addopts = "-q --import-mode=importlib"
+testpaths = ["tests", "lessons"]
 
 [tool.ruff]
 line-length = 100

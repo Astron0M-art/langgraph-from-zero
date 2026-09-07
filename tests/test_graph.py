@@ -42,7 +42,7 @@ def build_research_loop() -> StateGraph:
     return graph
 
 
-def test_reducer_accumulates_sequential_node_updates() -> None:
+def test_current_runtime_composes_v01_to_v03_capabilities() -> None:
     initial: Mapping[str, object] = {"count": 0, "evidence": [], "reviewed": False}
 
     steps = build_research_loop().compile().stream(initial)
