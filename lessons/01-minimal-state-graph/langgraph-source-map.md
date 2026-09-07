@@ -7,7 +7,7 @@
 |---|---|---|
 | 图构建器 | `libs/langgraph/langgraph/graph/state.py` 的 `StateGraph` | 保留 add node/edge/compile 三步 |
 | 编译结果 | 同文件的 `CompiledStateGraph` | 简化为只支持普通单出边 |
-| 执行入口 | `libs/langgraph/langgraph/pregel/main.py` 的 Pregel 接口 | 只保留同步 `invoke`/`stream` |
+| 执行入口 | `libs/langgraph/langgraph/pregel/main.py` 的 Pregel 接口 | 只保留同步 `run()` |
 | 运行循环 | `libs/langgraph/langgraph/pregel/_loop.py` 的 `PregelLoop` | 用顺序循环代替 superstep runtime |
 | 结束哨兵 | `langgraph.constants` 与图 API | 使用课程自己的 `START`/`END` 字符串 |
 
@@ -26,7 +26,7 @@
 ## 我们的设计
 
 - 节点始终收到状态副本，输入 mapping 不被修改。
-- `Step` 同时暴露局部 update 和合并后的 state，便于教学断言。
+- 字符串轨迹记录节点与局部 update，最终状态单独返回；本版没有 `Step` 类型。
 - 即使图结构合法，也用 `max_steps` 守住运行时活性边界。
 
 这些设计不能用来推断 LangGraph 的完整并发、持久化或恢复语义。

@@ -3,6 +3,7 @@ import pathlib
 import unittest
 
 MODULE_PATH = pathlib.Path(__file__).parents[1] / "snapshot" / "graph.py"
+TRACE_PATH = pathlib.Path(__file__).parents[1] / "traces" / "happy-path.txt"
 SPEC = importlib.util.spec_from_file_location("lesson_01_graph", MODULE_PATH)
 assert SPEC is not None and SPEC.loader is not None
 GRAPH = importlib.util.module_from_spec(SPEC)
@@ -17,6 +18,11 @@ class MinimalGraphTests(unittest.TestCase):
         self.assertEqual(state["plan"], ["define", "collect", "review"])
         self.assertEqual([line.split()[0] for line in trace], ["node=normalize", "node=plan"])
         self.assertEqual(initial, {"question": "  Durable agents?  "})
+
+    def test_demo_matches_checked_in_trace(self) -> None:
+        state, trace = GRAPH.build_demo().run({"question": "  What makes an agent durable?  "})
+        rendered = "\n".join([*trace, f"final={state!r}"]) + "\n"
+        self.assertEqual(rendered, TRACE_PATH.read_text(encoding="utf-8"))
 
     def test_cycle_stops_at_budget(self) -> None:
         graph = GRAPH.StateGraph()

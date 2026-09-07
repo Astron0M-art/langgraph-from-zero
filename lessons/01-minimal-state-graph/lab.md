@@ -18,7 +18,7 @@
 在 `exercises/` 中实现 `word_count` 节点，并把它插入 `normalize` 与 `plan` 之间。要求：
 
 - 不修改输入 mapping。
-- Step 顺序为 `normalize`、`word_count`、`plan`。
+- 轨迹中的节点顺序为 `normalize`、`word_count`、`plan`。
 - 最终状态新增 `word_count`。
 
 ## 理解检验

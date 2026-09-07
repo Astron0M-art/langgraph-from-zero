@@ -35,6 +35,6 @@
 - 为了在引入并行之前先测试合并契约，增加 `CompiledGraph.merge_updates()` 教学接口；它不是 LangGraph API。
 - 对初始状态、节点更新和 Reducer 结果做运行时 key/type 检查；不能据此推断上游会做同样校验。
 - 普通字段冲突错误直接指出 key、值数量和缺少 Reducer。
-- Step 保留原始局部 update，同时展示 Reducer 合并后的 state。
+- 冻结快照的字符串轨迹保留原始局部 update 和 Reducer 合并后的 state；当前包用 `Step` 表达同一信息。
 
 本课只复刻状态更新的最小因果链，不能用于推断 LangGraph 完整 Channel、并发与持久化语义。

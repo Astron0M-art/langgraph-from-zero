@@ -24,12 +24,14 @@ updates ──┴── group by key
 
 ## 责任边界
 
-- **请求入口**：`invoke()`、`stream()`；`merge_updates()` 只用于隔离验证合并规则。
+- **请求入口**：冻结快照提供 `run()` 与 `merge_updates()`；当前包对应 `invoke()`、`stream()` 与
+  `merge_updates()`。
 - **权威状态**：运行器内部复制的 `state`，不修改调用者输入。
 - **更新契约**：`StateSpec` 解析 schema，决定字段是否合法、是否必填以及是否拥有 reducer。
 - **调度者**：仍是 `CompiledGraph` 的顺序循环和条件边；Reducer 不决定下一步。
 - **副作用**：本版继续排除，节点和 Reducer 都必须是确定性纯函数；Reducer 返回新值，不原地修改输入。
-- **完成证据**：Step 中的合并后状态、显式 `END`、fixture trace 和冲突断言。
+- **完成证据**：冻结快照字符串轨迹中的合并后状态、显式 `END`、fixture trace 和冲突断言；当前包
+  用 `Step` 表达同一信息。
 
 ## 单更新与批量更新共用语义
 

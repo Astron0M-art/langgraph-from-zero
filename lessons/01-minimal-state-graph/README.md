@@ -30,6 +30,7 @@ python -m unittest discover -s lessons/01-minimal-state-graph/tests -v
 - 每个节点只能有一条普通出边。
 - 状态只是浅复制字典，没有 schema 或 reducer。
 - 没有并发、checkpoint、interrupt、重试或 LLM。
-- `stream()` 当前返回完整 Step 列表，不是异步增量流。
+- 冻结快照只提供同步 `run()`，返回最终状态和完整字符串轨迹，不提供 `invoke()`、`stream()` 或
+  `Step` 类型。
 
 下一版将用一个可复现失败说明：静态边无法根据研究结果选择“继续检索”还是“进入审查”。

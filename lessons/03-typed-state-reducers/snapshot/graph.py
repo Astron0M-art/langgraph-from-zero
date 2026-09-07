@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
+from inspect import Parameter, signature
 from typing import (
     Annotated,
     Any,
@@ -27,7 +28,12 @@ class GraphError(ValueError):
 
 
 class StateSpec:
-    def __init__(self, schema: type[object]) -> None:
+    def __init__(self, schema: type[object] | None) -> None:
+        self.required: set[str] = set()
+        self.fields: dict[str, tuple[object, Reducer | None]] | None = None
+        if schema is None:
+            return
+
         hints = get_type_hints(schema, include_extras=True)
         declared_required = set(getattr(schema, "__required_keys__", hints))
         self.required = {
@@ -36,7 +42,7 @@ class StateSpec:
             if get_origin(annotation) is Required
             or (get_origin(annotation) is not NotRequired and key in declared_required)
         }
-        self.fields: dict[str, tuple[object, Reducer | None]] = {}
+        self.fields = {}
         for key, annotation in hints.items():
             if get_origin(annotation) in {Required, NotRequired}:
                 annotation = get_args(annotation)[0]
@@ -44,10 +50,27 @@ class StateSpec:
             if get_origin(annotation) is Annotated:
                 annotation, *metadata = get_args(annotation)
                 if metadata and callable(metadata[-1]):
-                    reducer = metadata[-1]
+                    candidate = metadata[-1]
+                    try:
+                        positional = [
+                            parameter
+                            for parameter in signature(candidate).parameters.values()
+                            if parameter.kind
+                            in {Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD}
+                            and parameter.default is Parameter.empty
+                        ]
+                    except (TypeError, ValueError) as error:
+                        raise GraphError(f"cannot inspect reducer for state key {key!r}") from error
+                    if len(positional) != 2:
+                        raise GraphError(
+                            f"invalid reducer for state key {key!r}: expected (current, update)"
+                        )
+                    reducer = cast(Reducer, candidate)
             self.fields[key] = (annotation, reducer)
 
     def validate(self, state: Mapping[str, object]) -> dict[str, object]:
+        if self.fields is None:
+            return dict(state)
         unknown = set(state) - set(self.fields)
         if unknown:
             raise GraphError(f"unknown state keys: {sorted(unknown)!r}")
@@ -68,12 +91,13 @@ class StateSpec:
         grouped: dict[str, list[object]] = {}
         for update in updates:
             for key, value in update.items():
-                if key not in self.fields:
+                if self.fields is not None and key not in self.fields:
                     raise GraphError(f"unknown update key: {key!r}")
                 grouped.setdefault(key, []).append(value)
 
         for key, values in grouped.items():
-            _, reducer = self.fields[key]
+            field = self.fields[key] if self.fields is not None else None
+            reducer = field[1] if field is not None else None
             if len(values) > 1 and reducer is None:
                 raise GraphError(f"conflicting updates for {key!r} without a reducer")
             if reducer is None:
@@ -83,12 +107,17 @@ class StateSpec:
                     raise GraphError(f"reducer key {key!r} must be initialized")
                 value = result[key]
                 for update in values:
-                    value = reducer(value, update)
-            self._check_type(key, value)
+                    try:
+                        value = reducer(value, update)
+                    except Exception as error:
+                        raise GraphError(f"reducer failed for state key {key!r}") from error
+            if self.fields is not None:
+                self._check_type(key, value)
             result[key] = value
         return result
 
     def _check_type(self, key: str, value: object) -> None:
+        assert self.fields is not None
         expected, _ = self.fields[key]
         origin = get_origin(expected)
         if expected is Any:
@@ -105,7 +134,7 @@ class StateSpec:
 
 
 class StateGraph:
-    def __init__(self, state_schema: type[object]) -> None:
+    def __init__(self, state_schema: type[object] | None = None) -> None:
         self.spec = StateSpec(state_schema)
         self.nodes: dict[str, Node] = {}
         self.edges: dict[str, str] = {}
