@@ -24,6 +24,8 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
   exceptions are wrapped in `GraphError` with the original cause.
 - Restored the v0.1/v0.2 untyped `StateGraph()` entry in the cumulative v0.3 snapshot by keeping the
   v0.3 state schema optional, matching the latest runtime.
+- Restored the v0.2 direct-route and duplicate-conditional-edge contracts in the corrected v0.3
+  course snapshot, with an explicit step-budget regression.
 
 ## [0.3.0] - 2026-09-04
 

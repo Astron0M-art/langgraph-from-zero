@@ -1,4 +1,4 @@
-"""Frozen v0.3.0 snapshot: typed state, reducers, and update conflicts."""
+"""Corrected cumulative v0.3 snapshot, pending the next patch release."""
 
 from __future__ import annotations
 
@@ -137,7 +137,7 @@ class StateGraph:
         self.spec = StateSpec(state_schema)
         self.nodes: dict[str, Node] = {}
         self.edges: dict[str, str] = {}
-        self.branches: dict[str, tuple[Route, dict[str, str]]] = {}
+        self.branches: dict[str, tuple[Route, dict[str, str] | None]] = {}
 
     def add_node(self, name: str, node: Node) -> None:
         if name in self.nodes or name in {START, END}:
@@ -149,8 +149,12 @@ class StateGraph:
             raise GraphError(f"duplicate static edge from: {source}")
         self.edges[source] = target
 
-    def add_conditional_edges(self, source: str, route: Route, path_map: Mapping[str, str]) -> None:
-        self.branches[source] = (route, dict(path_map))
+    def add_conditional_edges(
+        self, source: str, route: Route, path_map: Mapping[str, str] | None = None
+    ) -> None:
+        if source in self.branches:
+            raise GraphError(f"duplicate conditional edge from: {source}")
+        self.branches[source] = (route, dict(path_map) if path_map is not None else None)
 
     def compile(self) -> CompiledGraph:
         if START not in self.edges:
@@ -160,10 +164,10 @@ class StateGraph:
             if source not in set(self.nodes) | {START} or target not in targets:
                 raise GraphError("static edge references an unknown node")
         for source, (_, path_map) in self.branches.items():
-            if source not in self.nodes or any(
-                target not in targets for target in path_map.values()
-            ):
-                raise GraphError("conditional edge references an unknown node")
+            if source not in self.nodes:
+                raise GraphError("conditional edge starts at an unknown node")
+            if path_map is not None and any(target not in targets for target in path_map.values()):
+                raise GraphError("conditional edge targets an unknown node")
         for name in self.nodes:
             if int(name in self.edges) + int(name in self.branches) != 1:
                 raise GraphError(f"node {name!r} needs one outgoing edge")
@@ -176,7 +180,7 @@ class CompiledGraph:
         spec: StateSpec,
         nodes: Mapping[str, Node],
         edges: Mapping[str, str],
-        branches: Mapping[str, tuple[Route, dict[str, str]]],
+        branches: Mapping[str, tuple[Route, dict[str, str] | None]],
     ) -> None:
         self.spec = spec
         self.nodes = dict(nodes)
@@ -211,9 +215,15 @@ class CompiledGraph:
             return self.edges[source]
         route, path_map = self.branches[source]
         label = route(dict(state))
-        if label not in path_map:
-            raise GraphError(f"unknown route {label!r}")
-        return path_map[label]
+        if path_map is not None:
+            if label not in path_map:
+                raise GraphError(f"unknown route {label!r} from node {source!r}")
+            target = path_map[label]
+        else:
+            target = label
+        if target != END and target not in self.nodes:
+            raise GraphError(f"route targets unknown node: {target!r}")
+        return target
 
 
 def append_evidence(current: list[str], update: list[str]) -> list[str]:

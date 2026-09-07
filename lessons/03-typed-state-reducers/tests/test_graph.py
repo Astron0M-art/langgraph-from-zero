@@ -92,6 +92,24 @@ class TypedStateTests(unittest.TestCase):
         )
         self.assertEqual(initial, {"count": 0, "items": []})
 
+    def test_v02_direct_route_and_step_budget_remain_available(self) -> None:
+        graph = GRAPH.StateGraph()
+        graph.add_node("again", lambda state: {"count": int(state.get("count", 0)) + 1})
+        graph.add_edge(GRAPH.START, "again")
+        graph.add_conditional_edges("again", lambda _state: "again")
+
+        with self.assertRaisesRegex(GRAPH.GraphError, "max_steps=3"):
+            graph.compile().run({}, max_steps=3)
+
+    def test_v02_duplicate_conditional_edge_is_rejected(self) -> None:
+        graph = GRAPH.StateGraph()
+        graph.add_node("choose", lambda _state: {})
+        graph.add_edge(GRAPH.START, "choose")
+        graph.add_conditional_edges("choose", lambda _state: GRAPH.END)
+
+        with self.assertRaisesRegex(GRAPH.GraphError, "duplicate conditional edge"):
+            graph.add_conditional_edges("choose", lambda _state: GRAPH.END)
+
     def test_demo_accumulates_updates_and_matches_trace(self) -> None:
         initial = {"evidence_needed": 2, "evidence": []}
         state, trace = GRAPH.build_demo().run(initial)
