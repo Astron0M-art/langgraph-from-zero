@@ -15,8 +15,6 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Defined every lesson snapshot as the cumulative runtime through that version; independent
   execution now means reproducibility without future code, not a separate implementation line.
 - The default `pytest` command now collects root tests and all frozen lesson suites.
-- Updated the public automation policy to the even-date midnight schedule and three context-isolated
-  AI audit rounds; automated audit is not presented as human review.
 
 ### Fixed
 
