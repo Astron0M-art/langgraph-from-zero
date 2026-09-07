@@ -45,8 +45,13 @@ pytest
 
 ## Course contract
 
-- Every tagged lesson snapshot runs independently.
+- The repository has one cumulative runtime: each version preserves all verified behavior from the
+  previous version and adds one runtime semantic.
+- Each tagged lesson snapshot captures the cumulative implementation at that point and runs without
+  depending on future course code.
 - Each release begins with a demonstrated limitation and adds one minimal abstraction.
+- Every release runs all historical regressions and at least one end-to-end graph that combines two
+  or more previously released capabilities.
 - Source claims map to a pinned upstream commit and public symbols or tests.
 - Offline fakes and fixtures are the default; API keys are never required for the course.
 - Fault injection is labeled as an experiment and never presented as production experience.
@@ -54,7 +59,8 @@ pytest
 
 The full sequence is documented in [ROADMAP.md](ROADMAP.md). Chinese lessons are the source of
 truth; this English README keeps release-level status, setup, limitations, governance, authorship,
-and license information in sync.
+and license information in sync. The [cumulative capability matrix](lessons/README.md) distinguishes
+each release delta from the behavior retained through that release.
 
 ## Relationship to Pi Agent from Zero
 
