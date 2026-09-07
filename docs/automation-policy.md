@@ -18,6 +18,14 @@
 6. 不覆盖用户修改，不 force-push，不绕过 required checks。
 7. 合并后才允许创建语义化 tag 和 GitHub Release。
 
+## 累计演进门禁
+
+- `vN` 必须保留 `vN-1` 的全部已验证行为，只新增一个运行时语义。
+- 最新能力必须进入同一套 `src/` 与默认 CLI；只新增 lesson 或复制另一套图引擎属于阻断项。
+- lesson snapshot 是截至该版本的累计实现；可独立运行只表示不依赖未来代码。
+- 每次发布同时验证新增行为、全部历史回归，以及至少一条组合两项以上既有能力的累计端到端路径。
+- API、CLI、state schema 与 checkpoint 格式不得静默失效；必要变化必须提供迁移说明和测试。
+
 ## 安全边界
 
 - 不读取、记录或提交 API Key、OAuth token、Cookie、个人文件、浏览历史或真实 Session。

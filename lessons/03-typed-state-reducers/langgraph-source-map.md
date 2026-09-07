@@ -26,7 +26,8 @@
 
 - 没有独立 Channel 对象、Pregel loop、superstep、并行任务或 `Overwrite`。
 - 只解析一个 state schema，不区分 input、output、private state、context 或 managed value。
-- 当前包为兼容前两版调用仍允许省略 schema；v0.3 冻结快照和本课示例都要求显式 schema。
+- 固定上游要求 state schema；为了保留前两版入口，当前包与修订后的 v0.3 课程快照仍允许省略
+  schema，本课主示例则显式传入 schema。
 - Reducer key 要求由初始状态提供 current value，不自动构造各种类型的 identity。
 - 类型校验只支持课程所需的 Python 常用类型，不实现完整 typing 运行时。
 
@@ -35,6 +36,7 @@
 - 为了在引入并行之前先测试合并契约，增加 `CompiledGraph.merge_updates()` 教学接口；它不是 LangGraph API。
 - 对初始状态、节点更新和 Reducer 结果做运行时 key/type 检查；不能据此推断上游会做同样校验。
 - 普通字段冲突错误直接指出 key、值数量和缺少 Reducer。
-- Step 保留原始局部 update，同时展示 Reducer 合并后的 state。
+- v0.3 课程快照的字符串轨迹保留原始局部 update 和 Reducer 合并后的 state；当前包用 `Step` 表达
+  同一信息。
 
 本课只复刻状态更新的最小因果链，不能用于推断 LangGraph 完整 Channel、并发与持久化语义。

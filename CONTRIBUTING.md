@@ -15,9 +15,10 @@
 
 1. 从 `main` 创建短生命周期分支。
 2. 一个变更解决一个明确问题，不跨越 Roadmap 多个版本。
-3. 同步更新实现、冻结快照、讲义、测试、README 状态和 Changelog。
-4. 运行完整质量检查。
-5. Pull Request 写清上一版限制、新抽象、源码依据和验证证据。
+3. 从上一版本累计实现继续修改；不能另建一套平行图引擎或只更新 lesson 而不进入最新 `src/`。
+4. 同步更新实现、截至本版的累计快照、讲义、能力矩阵、测试、README 状态和 Changelog。
+5. 运行新增行为、全部历史回归和至少一条跨两项历史能力的累计端到端路径。
+6. Pull Request 写清上一版限制、新抽象、兼容性、源码依据和验证证据。
 
 ```bash
 python -m pip install -e '.[dev]'
@@ -26,6 +27,8 @@ ruff check .
 mypy src
 pytest
 python -m unittest discover -s lessons/01-minimal-state-graph/tests -v
+python -m unittest discover -s lessons/02-conditional-routing/tests -v
+python -m unittest discover -s lessons/03-typed-state-reducers/tests -v
 python -m build
 ```
 

@@ -4,24 +4,24 @@
 input mapping
     │ copy
     ▼
-CompiledGraph.stream
+CompiledGraph.run
     │ select edge
     ▼
 node(old state) ──returns──> partial update
     │ merge into copied state
     ▼
-Step(index, node, update, state)
+trace line: node + partial update
     │
     └── next static edge ──> END or next node
 ```
 
 ## 五个责任点
 
-- **请求入口**：`CompiledGraph.invoke()` 或 `stream()`。
+- **请求入口**：冻结快照的 `CompiledGraph.run()`。
 - **权威状态**：运行器内部的 `state` 字典；节点只得到副本。
 - **下一步决策者**：编译后的静态 `edges` 映射，不是节点或模型。
 - **副作用位置**：本版设计要求节点为纯函数；运行时不执行外部副作用。
-- **完成证据**：执行到 `END`，并返回最终状态或完整 Step 轨迹。
+- **完成证据**：执行到 `END`，并同时返回最终状态和完整字符串轨迹。
 
 ## 错误与恢复
 

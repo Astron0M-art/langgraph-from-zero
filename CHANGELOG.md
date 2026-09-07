@@ -5,6 +5,28 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 
 ## [Unreleased]
 
+### Added
+
+- Cumulative regression coverage showing v0.2 retains static graphs and both the v0.3 snapshot and
+  default CLI compose static edges, conditional routing, typed state, and reducers end to end.
+
+### Changed
+
+- Defined every lesson snapshot as the cumulative runtime through that version; independent
+  execution now means reproducibility without future code, not a separate implementation line.
+- The default `pytest` command now collects root tests and all frozen lesson suites.
+
+### Fixed
+
+- Corrected v0.1 lesson text to describe its actual `run()` and string-trace interface, and tied its
+  checked-in trace to an exact fixture assertion.
+- Aligned the v0.3 frozen reducer contract with its lesson: invalid signatures fail early and reducer
+  exceptions are wrapped in `GraphError` with the original cause.
+- Restored the v0.1/v0.2 untyped `StateGraph()` entry in the cumulative v0.3 snapshot by keeping the
+  v0.3 state schema optional, matching the latest runtime.
+- Restored the v0.2 direct-route and duplicate-conditional-edge contracts in the corrected v0.3
+  course snapshot, with an explicit step-budget regression.
+
 ## [0.3.0] - 2026-09-04
 
 ### Added

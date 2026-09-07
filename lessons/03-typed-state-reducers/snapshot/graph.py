@@ -1,8 +1,9 @@
-"""Frozen v0.3.0 snapshot: typed state, reducers, and update conflicts."""
+"""Corrected cumulative v0.3 snapshot, pending the next patch release."""
 
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
+from inspect import Parameter, signature
 from typing import (
     Annotated,
     Any,
@@ -27,7 +28,12 @@ class GraphError(ValueError):
 
 
 class StateSpec:
-    def __init__(self, schema: type[object]) -> None:
+    def __init__(self, schema: type[object] | None) -> None:
+        self.required: set[str] = set()
+        self.fields: dict[str, tuple[object, Reducer | None]] | None = None
+        if schema is None:
+            return
+
         hints = get_type_hints(schema, include_extras=True)
         declared_required = set(getattr(schema, "__required_keys__", hints))
         self.required = {
@@ -36,7 +42,7 @@ class StateSpec:
             if get_origin(annotation) is Required
             or (get_origin(annotation) is not NotRequired and key in declared_required)
         }
-        self.fields: dict[str, tuple[object, Reducer | None]] = {}
+        self.fields = {}
         for key, annotation in hints.items():
             if get_origin(annotation) in {Required, NotRequired}:
                 annotation = get_args(annotation)[0]
@@ -44,10 +50,26 @@ class StateSpec:
             if get_origin(annotation) is Annotated:
                 annotation, *metadata = get_args(annotation)
                 if metadata and callable(metadata[-1]):
-                    reducer = metadata[-1]
+                    candidate = metadata[-1]
+                    try:
+                        positional = [
+                            parameter
+                            for parameter in signature(candidate).parameters.values()
+                            if parameter.kind
+                            in {Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD}
+                        ]
+                    except (TypeError, ValueError) as error:
+                        raise GraphError(f"cannot inspect reducer for state key {key!r}") from error
+                    if len(positional) != 2:
+                        raise GraphError(
+                            f"invalid reducer for state key {key!r}: expected (current, update)"
+                        )
+                    reducer = cast(Reducer, candidate)
             self.fields[key] = (annotation, reducer)
 
     def validate(self, state: Mapping[str, object]) -> dict[str, object]:
+        if self.fields is None:
+            return dict(state)
         unknown = set(state) - set(self.fields)
         if unknown:
             raise GraphError(f"unknown state keys: {sorted(unknown)!r}")
@@ -68,12 +90,13 @@ class StateSpec:
         grouped: dict[str, list[object]] = {}
         for update in updates:
             for key, value in update.items():
-                if key not in self.fields:
+                if self.fields is not None and key not in self.fields:
                     raise GraphError(f"unknown update key: {key!r}")
                 grouped.setdefault(key, []).append(value)
 
         for key, values in grouped.items():
-            _, reducer = self.fields[key]
+            field = self.fields[key] if self.fields is not None else None
+            reducer = field[1] if field is not None else None
             if len(values) > 1 and reducer is None:
                 raise GraphError(f"conflicting updates for {key!r} without a reducer")
             if reducer is None:
@@ -83,12 +106,17 @@ class StateSpec:
                     raise GraphError(f"reducer key {key!r} must be initialized")
                 value = result[key]
                 for update in values:
-                    value = reducer(value, update)
-            self._check_type(key, value)
+                    try:
+                        value = reducer(value, update)
+                    except Exception as error:
+                        raise GraphError(f"reducer failed for state key {key!r}") from error
+            if self.fields is not None:
+                self._check_type(key, value)
             result[key] = value
         return result
 
     def _check_type(self, key: str, value: object) -> None:
+        assert self.fields is not None
         expected, _ = self.fields[key]
         origin = get_origin(expected)
         if expected is Any:
@@ -105,11 +133,11 @@ class StateSpec:
 
 
 class StateGraph:
-    def __init__(self, state_schema: type[object]) -> None:
+    def __init__(self, state_schema: type[object] | None = None) -> None:
         self.spec = StateSpec(state_schema)
         self.nodes: dict[str, Node] = {}
         self.edges: dict[str, str] = {}
-        self.branches: dict[str, tuple[Route, dict[str, str]]] = {}
+        self.branches: dict[str, tuple[Route, dict[str, str] | None]] = {}
 
     def add_node(self, name: str, node: Node) -> None:
         if name in self.nodes or name in {START, END}:
@@ -121,8 +149,12 @@ class StateGraph:
             raise GraphError(f"duplicate static edge from: {source}")
         self.edges[source] = target
 
-    def add_conditional_edges(self, source: str, route: Route, path_map: Mapping[str, str]) -> None:
-        self.branches[source] = (route, dict(path_map))
+    def add_conditional_edges(
+        self, source: str, route: Route, path_map: Mapping[str, str] | None = None
+    ) -> None:
+        if source in self.branches:
+            raise GraphError(f"duplicate conditional edge from: {source}")
+        self.branches[source] = (route, dict(path_map) if path_map is not None else None)
 
     def compile(self) -> CompiledGraph:
         if START not in self.edges:
@@ -132,10 +164,10 @@ class StateGraph:
             if source not in set(self.nodes) | {START} or target not in targets:
                 raise GraphError("static edge references an unknown node")
         for source, (_, path_map) in self.branches.items():
-            if source not in self.nodes or any(
-                target not in targets for target in path_map.values()
-            ):
-                raise GraphError("conditional edge references an unknown node")
+            if source not in self.nodes:
+                raise GraphError("conditional edge starts at an unknown node")
+            if path_map is not None and any(target not in targets for target in path_map.values()):
+                raise GraphError("conditional edge targets an unknown node")
         for name in self.nodes:
             if int(name in self.edges) + int(name in self.branches) != 1:
                 raise GraphError(f"node {name!r} needs one outgoing edge")
@@ -148,7 +180,7 @@ class CompiledGraph:
         spec: StateSpec,
         nodes: Mapping[str, Node],
         edges: Mapping[str, str],
-        branches: Mapping[str, tuple[Route, dict[str, str]]],
+        branches: Mapping[str, tuple[Route, dict[str, str] | None]],
     ) -> None:
         self.spec = spec
         self.nodes = dict(nodes)
@@ -183,9 +215,15 @@ class CompiledGraph:
             return self.edges[source]
         route, path_map = self.branches[source]
         label = route(dict(state))
-        if label not in path_map:
-            raise GraphError(f"unknown route {label!r}")
-        return path_map[label]
+        if path_map is not None:
+            if label not in path_map:
+                raise GraphError(f"unknown route {label!r} from node {source!r}")
+            target = path_map[label]
+        else:
+            target = label
+        if target != END and target not in self.nodes:
+            raise GraphError(f"route targets unknown node: {target!r}")
+        return target
 
 
 def append_evidence(current: list[str], update: list[str]) -> list[str]:

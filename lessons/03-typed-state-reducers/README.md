@@ -28,10 +28,12 @@ python -m unittest discover -s lessons/03-typed-state-reducers/tests -v
 ## 验收
 
 - Reducer 对顺序节点更新和显式 update batch 使用同一合并规则。
+- v0.1/v0.2 的无 schema `StateGraph()` 入口仍可运行；schema 是 v0.3 新增的可选契约。
 - 普通字段在同一 update batch 中收到两个值时失败，不静默覆盖。
 - 未知字段、缺少必填字段和错误值类型在状态边界失败。
 - 节点仍只返回局部更新，路由读取的是 reducer 合并后的状态。
-- 冻结快照可独立运行，v0.1 与 v0.2 快照不被修改。
+- 当前 v0.3 课程快照累计保留 v0.1 的静态边与步数预算，以及 v0.2 的映射路由、直达路由和重复
+  条件边错误，并通过对应回归断言。
 
 ## 本版边界
 
@@ -40,6 +42,7 @@ python -m unittest discover -s lessons/03-typed-state-reducers/tests -v
 - Reducer key 必须在初始状态中初始化，本版不推导通用 identity。
 - 状态只做浅复制；Reducer 必须返回新值，不得原地修改 current 或 update 中的嵌套对象。
 - 运行时类型检查只覆盖课程支持的常用 Python 类型，不替代静态类型检查或数据验证库。
-- 仍无 Channel、Pregel superstep、checkpoint、异步执行或外部副作用。
+- 仍无 Channel、Pregel superstep、checkpoint、异步执行或内建外部副作用 adapter；用户回调仍须
+  遵守纯函数约定。
 
 下一版将把更多结构错误前移到编译期，加入可达性、死端与保留节点检查。

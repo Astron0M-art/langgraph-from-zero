@@ -11,6 +11,21 @@ SPEC.loader.exec_module(GRAPH)
 
 
 class ConditionalGraphTests(unittest.TestCase):
+    def test_v01_static_edges_remain_available(self) -> None:
+        graph = GRAPH.StateGraph()
+        graph.add_node("normalize", lambda state: {"value": str(state["value"]).strip()})
+        graph.add_node("finish", lambda state: {"done": True})
+        graph.add_edge(GRAPH.START, "normalize")
+        graph.add_edge("normalize", "finish")
+        graph.add_edge("finish", GRAPH.END)
+
+        initial = {"value": "  cumulative  "}
+        state, trace = graph.compile().run(initial)
+
+        self.assertEqual(state, {"value": "cumulative", "done": True})
+        self.assertEqual([line.split()[0] for line in trace], ["node=normalize", "node=finish"])
+        self.assertEqual(initial, {"value": "  cumulative  "})
+
     def test_demo_routes_on_merged_state_and_is_deterministic(self) -> None:
         initial = {"evidence_needed": 2}
         state, trace = GRAPH.build_demo().run(initial)
